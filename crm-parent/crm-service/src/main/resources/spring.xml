@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+    
+    <import resource="spring-mapper.xml"/>
+
+    <!--扫描service包-->
+    <context:component-scan base-package="org.example.crm.service"/>
+    <!--xml配置事务-->
+    <!--事务管理器-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    <!--配置qie点
+                       所以返回值类型                  以I开头下面的所有方法 （..）所有参数
+        表达式：execution(* org.example.crm.service.I*Service.*(..))
+        需要切在base里面的service里面
+    -->
+    <aop:config>
+        <aop:pointcut id="pointcut" expression="execution(* org.example.base.service.I*Service.*(..))"/>
+        <aop:advisor pointcut-ref="pointcut" advice-ref="interceptor"  />
+    </aop:config>
+    <!--事务的通知-->
+    <tx:advice id="interceptor" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!--查询的都支持 -->
+            <tx:method name="select*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="find*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="query*" read-only="true" propagation="SUPPORTS"/>
+            <tx:method name="*" read-only="false" propagation="REQUIRED"/>
+        </tx:attributes>
+    </tx:advice>
+</beans>
